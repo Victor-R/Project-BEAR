@@ -10,8 +10,8 @@ public class GameController : MonoBehaviour {
     
     #region Publicas
     public Transform TransformDoBear;
+    public Transform TransformDoChar;
     public GameObject Lupa;
-    public Image tal;
     #endregion
 
     double Distancia = 10;
@@ -58,7 +58,7 @@ public class GameController : MonoBehaviour {
     }
     #endregion
 
-    #region FixedUpdate
+    #region Variáveis FixedUpdate
     private float tempoAnterior1;
     private float tempoAnterior2;
     private float tempoAnterior3;
@@ -66,7 +66,7 @@ public class GameController : MonoBehaviour {
 
     // Fração de segundo utilizada para os Incrementos do FixedUpdate:
     float fracaoDeSegundoParaUpdate = 0.05f;
-
+    #endregion
     private void FixedUpdate()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -100,7 +100,8 @@ public class GameController : MonoBehaviour {
         #endregion
 
         #region Atualizador De Animação
-        AnimatorDeMovimentacaoDoPersonagem.speed = System.Convert.ToSingle(1 + VelocidadeChar/100);
+        AnimatorDeMovimentacaoDoPersonagem.speed = Convert.ToSingle(1 + VelocidadeChar/100);
+        AnimatorDoTerreno.speed = Convert.ToSingle(1 + VelocidadeChar / 100);
         #endregion
 
         #region Atualizar Posição Bear
@@ -108,16 +109,15 @@ public class GameController : MonoBehaviour {
         {
             if (tempoAnterior3 + 0.05f < Time.time)
             {
-                TransformDoBear.localPosition = new Vector2(Convert.ToSingle((Distancia * -105) +250), TransformDoBear.localPosition.y);
+                TransformDoBear.localPosition = new Vector2(Convert.ToSingle((Distancia * -105) +320), TransformDoBear.localPosition.y);
+                tempoAnterior3 = Time.time;
+
+                TransformDoChar.localPosition = new Vector2(Convert.ToSingle((Distancia * -50) +550), TransformDoChar.localPosition.y);
                 tempoAnterior3 = Time.time;
             }
         }
         #endregion
 
-        #region Atualizar Cenário
-
-        #endregion
-        //tal.material.se
         #region Mostrar Lupa
         if (Distancia > 11)
         {
@@ -129,26 +129,29 @@ public class GameController : MonoBehaviour {
         }
         #endregion
 
-        #region Salvar e agendar notificação a cada 5 segundos
+        #region Salvar e agendar notificação a cada 10 segundos
         if (tempoAnterior4 + 10 < Time.time)
         {
             SalvarParametros();
             AgendarNotificacao();
+            tempoAnterior4 = Time.time;
         }
         #endregion
     }
-    #endregion
+    
 
     #region Variáveis Bear
     double VelocidadeBear = 4.123;
     #endregion
 
-    #region Variáveis e Métodos do Personagem
+    #region Variáveis Personagem
     double VelocidadeChar = 0;
     public static double VelocidadeMinimaAtual = 2;
     public static double DecrementoDeVelocidadeAtual = 0.3;
     public static double IncrementoDeVelocidadeAtual = 0.5f;
     public Animator AnimatorDeMovimentacaoDoPersonagem;
+    public Animator AnimatorDoTerreno;
+    #endregion
 
     #region Métodos de Incremento
     public void IncrementarVelocidadePersonagem()
@@ -175,8 +178,6 @@ public class GameController : MonoBehaviour {
 
         return Velocidade;
     }
-    #endregion
-
     #endregion
 
     #region Mono e Outros Métodos
@@ -240,34 +241,34 @@ public class GameController : MonoBehaviour {
 
     private string CortarUltimosDigitos(double valor)
     {
-        char[] tal = valor.ToString().ToCharArray();
-        int index = Array.IndexOf(tal, ',');
+        char[] valorEmCharArray = valor.ToString().ToCharArray();
+        int index = Array.IndexOf(valorEmCharArray, ',');
         
-        string stringtal = "";
+        string srtringParaRetornar = "";
 
 
         for (int i = 0; i < index + 1; i++)
         {
-            stringtal += tal[i];
+            srtringParaRetornar += valorEmCharArray[i];
         }
 
-        if (tal.Length >= index + 2)
+        if (valorEmCharArray.Length >= index + 2)
         {
-            stringtal += tal[index + 1];
+            srtringParaRetornar += valorEmCharArray[index + 1];
 
         }
-        if (tal.Length >= index + 3)
+        if (valorEmCharArray.Length >= index + 3)
         {
-            stringtal += tal[index + 2];
+            srtringParaRetornar += valorEmCharArray[index + 2];
 
         }
-        if (tal.Length >= index + 4)
+        if (valorEmCharArray.Length >= index + 4)
         {
-            stringtal += tal[index + 3];
+            srtringParaRetornar += valorEmCharArray[index + 3];
 
         }
 
-        return stringtal;
+        return srtringParaRetornar;
     }
 
     #region Variáveis Gameover
@@ -450,6 +451,8 @@ public class GameController : MonoBehaviour {
 
             while (distanciaPrevista > 25)
             {
+
+                // SIMULA O GANHO E PERDA DE DISTANCIA ATRAVES DO TEMPO
                 if (velocidadePrevista > VelocidadeMinimaAtual)
                 {
                     distanciaPrevista += velocidadePrevista * 0.277778;
@@ -463,34 +466,36 @@ public class GameController : MonoBehaviour {
                     distanciaPrevista -= (VelocidadeBear - VelocidadeMinimaAtual) * 0.277778;
 
                     tempoEmSegundos++;
-                }
-                /*
-                if (distanciaPrevista > 99 && distanciaPrevista < 101)
-                {
-                    string[] MensagensDeAproximacao100 = new string[]
+
+                    // AGENDAR NOTIFICAÇÃO AOS 100M RESTANTES PARA ALCANÇAR
+                    if (distanciaPrevista > 99 && distanciaPrevista < 101)
                     {
+                        string[] MensagensDeAproximacao100 = new string[]
+                        {
                         "Faltam menos de 100m pro Bear te pegar!",
                         "Not today, not tomorrow, but i will kill you"
-                    };
+                        };
 
-                    LocalNotification.SendNotification(3, tempoEmSegundos * 1000, "Alerta de Aproximação! (100m)", MensagensDeAproximacao100[UnityEngine.Random.Range(0, MensagensDeAproximacao100.Length - 1)], new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
-                }
+                        LocalNotification.SendNotification(3, tempoEmSegundos * 1000, "Alerta de Aproximação! (100m)", MensagensDeAproximacao100[UnityEngine.Random.Range(0, MensagensDeAproximacao100.Length - 1)], new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
+                    }
 
-                if (distanciaPrevista > 49 && distanciaPrevista < 51)
-                {
-                    string[] MensagensDeAproximacao50 = new string[]
+                    // AGENDAR NOTIFICAÇÃO AOS 50M RESTANTES PARA ALCANÇAR
+                    if (distanciaPrevista > 49 && distanciaPrevista < 51)
                     {
+                        string[] MensagensDeAproximacao50 = new string[]
+                        {
                         "Faltam menos de 50m pro Bear te pegar!",
                         "Falta pouco pro Bear te pegar.",
                         "The life snake.",
                         "Hora de procastinar mais um pouco."
-                    };
+                        };
 
-                    LocalNotification.SendNotification(3, tempoEmSegundos * 1000, "Alerta de Aproximação! (100m)", MensagensDeAproximacao50[UnityEngine.Random.Range(0, MensagensDeAproximacao50.Length - 1)], new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
+                        LocalNotification.SendNotification(3, tempoEmSegundos * 1000, "Alerta de Aproximação! (50m)", MensagensDeAproximacao50[UnityEngine.Random.Range(0, MensagensDeAproximacao50.Length - 1)], new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
+                    }
                 }
-                */
             }
 
+            // AGENDAR NOTIFICAÇÃO AOS 25M RESTANTES PARA ALCANÇAR
             string[] MensagensDeAproximacao = new string[]
             {
                 "Faltam menos de 25m pro Bear te pegar!",
@@ -499,12 +504,11 @@ public class GameController : MonoBehaviour {
                 "Cachoooooooorro!",
                 "Two minutes to miiiiiiiidniiiiight"
             };
-
             LocalNotification.SendNotification(1, tempoEmSegundos * 1000, "Alerta de Aproximação! (25m)", MensagensDeAproximacao[UnityEngine.Random.Range(0, MensagensDeAproximacao.Length - 1)], new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
         }
         else
         {
-            LocalNotification.SendNotification(1, 10000, "Alerta de Aproximação!", "Tem certeza que já vai? O Bear logo vai te alcançar!", new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
+            LocalNotification.SendNotification(1, 15000, "Alerta de Aproximação!", "Tem certeza que já vai? O Bear logo vai te alcançar!", new Color32(0, 0, 0, 255), true, true, true, "ic_launcher");
         }
     }
     #endregion
